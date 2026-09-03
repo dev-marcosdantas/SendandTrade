@@ -3,7 +3,7 @@ from conta import Conta
 
 clientes = {}      # Mapeia CPF -> Cliente
 contas = {}        # Mapeia numero_conta -> Conta
-contador_conta = 1 # Gera números automáticos: 1, 2, 3...
+contador_conta = 1 # Gera números automáticos
 
 def cadastrar_cliente_e_conta():
     global contador_conta
@@ -19,11 +19,11 @@ def cadastrar_cliente_e_conta():
         print("Erro: Ja existe um cliente com este CPF.")
         return
 
-    # 1. Cria o cliente
+    #Cria o cliente
     cliente = Cliente(nome, cpf)
     clientes[cpf] = cliente
 
-    # 2. Gera a conta automaticamente para ele
+    #Gera a conta automaticamente para ele
     numero_nova_conta = contador_conta
     nova_conta = Conta(numero=numero_nova_conta, titular=cliente)
     contas[numero_nova_conta] = nova_conta
