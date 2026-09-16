@@ -1,14 +1,15 @@
+import json
 from cliente import Cliente
 from agencia import Agencia
 from conta import Conta
 
 class MenuInterface:
     def __init__(self):
-        self.agencias = {}       # Mapeia codigo_agencia -> Agencia
-        self.clientes = {}       # Mapeia cpf -> Cliente
-        self.contador_conta = 1  # Gera número sequencial para as contas
+        self.agencias = {}
+        self.clientes = {}
+        self.contador_conta = 1
+        self.carregar_json()
 
-    # --- GERENCIAMENTO E BUSCA DE AGÊNCIAS ---
     def cadastrar_agencia(self):
         print("\n--- CADASTRAR NOVA AGÊNCIA ---")
         codigo = input("Código da agência (ex: 0001): ").strip()
@@ -67,7 +68,6 @@ class MenuInterface:
         del self.agencias[codigo]
         print(f"Agência {codigo} removida com sucesso!")
 
-    # --- GERENCIAMENTO E BUSCA DE CLIENTES E CONTAS ---
     def cadastrar_cliente_e_conta(self):
         print("\n--- CADASTRO DE CLIENTE E ABERTURA DE CONTA ---")
         if not self.agencias:
@@ -123,7 +123,6 @@ class MenuInterface:
             print("  Contas associadas:")
             contas_do_cliente = []
             
-            # Varre todas as contas de todas as agências para localizar as do cliente
             for agencia in self.agencias.values():
                 for conta in agencia.contas.values():
                     if cliente in conta.titulares:
@@ -158,7 +157,6 @@ class MenuInterface:
         else:
             print("Este cliente já é titular desta conta.")
 
-    # --- OPERAÇÕES BANCÁRIAS ---
     def consultar_saldo(self):
         print("\n--- CONSULTA DE SALDO ---")
         _, conta = self._buscar_conta_input()
@@ -199,7 +197,111 @@ class MenuInterface:
         else:
             print("Erro: Saldo insuficiente ou valor inválido.")
 
-    # --- MÉTODOS AUXILIARES E LOOP PRINCIPAL ---
+    def listar_agencias(self):
+        print("\n--- LISTA DE AGÊNCIAS ---")
+        if not self.agencias:
+            print("Nenhuma agência cadastrada.")
+            return
+        for agencia in self.agencias.values():
+            print(agencia)
+
+    def listar_clientes(self):
+        print("\n--- LISTA DE CLIENTES ---")
+        if not self.clientes:
+            print("Nenhum cliente cadastrado.")
+            return
+        for cliente in self.clientes.values():
+            print(cliente)
+
+    def listar_contas(self):
+        print("\n--- LISTA DE CONTAS ---")
+        ha_contas = False
+        for agencia in self.agencias.values():
+            for conta in agencia.contas.values():
+                print(conta)
+                ha_contas = True
+        if not ha_contas:
+            print("Nenhuma conta cadastrada.")
+
+    def gerar_relatorio_banco(self):
+        print("\n" + "=" * 50)
+        print("           RELATÓRIO GERAL DO BANCO          ")
+        print("=" * 50)
+        
+        total_agencias = len(self.agencias)
+        total_clientes = len(self.clientes)
+        
+        total_contas = 0
+        saldo_total = 0.0
+        
+        for agencia in self.agencias.values():
+            total_contas += len(agencia.contas)
+            for conta in agencia.contas.values():
+                saldo_total += conta.saldo
+
+        print(f"Total de Agências Cadastradas: {total_agencias}")
+        print(f"Total de Clientes Cadastrados: {total_clientes}")
+        print(f"Total de Contas Abertas:      {total_contas}")
+        print(f"Saldo Total no Banco:          R$ {saldo_total:.2f}")
+        print("=" * 50)
+
+    def salvar_json(self):
+        dados = {
+            "contador_conta": self.contador_conta,
+            "clientes": [
+                {"nome": c.nome, "cpf": c.cpf} for c in self.clientes.values()
+            ],
+            "agencias": [
+                {"codigo": a.codigo, "nome": a.nome} for a in self.agencias.values()
+            ],
+            "contas": []
+        }
+
+        for agencia in self.agencias.values():
+            for conta in agencia.contas.values():
+                dados["contas"].append({
+                    "numero": conta.numero,
+                    "agencia_codigo": agencia.codigo,
+                    "saldo": conta.saldo,
+                    "titulares_cpf": [t.cpf for t in conta.titulares]
+                })
+
+        try:
+            with open("banco.json", "w", encoding="utf-8") as f:
+                json.dump(dados, f, ensure_ascii=False, indent=4)
+            print("\nDados salvos em 'banco.json' com sucesso!")
+        except Exception as e:
+            print(f"\nErro ao salvar dados: {e}")
+
+    def carregar_json(self):
+        try:
+            with open("banco.json", "r", encoding="utf-8") as f:
+                dados = json.load(f)
+
+            self.contador_conta = dados.get("contador_conta", 1)
+
+            for c in dados.get("clientes", []):
+                self.clientes[c["cpf"]] = Cliente(c["nome"], c["cpf"])
+
+            for a in dados.get("agencias", []):
+                self.agencias[a["codigo"]] = Agencia(a["codigo"], a["nome"])
+
+            for ct in dados.get("contas", []):
+                agencia = self.agencias.get(ct["agencia_codigo"])
+                if agencia:
+                    nova_conta = Conta(agencia=agencia, numero=ct["numero"], saldo_inicial=ct["saldo"])
+                    for cpf in ct["titulares_cpf"]:
+                        cliente = self.clientes.get(cpf)
+                        if cliente:
+                            nova_conta.adicionar_titular(cliente)
+                    agencia.adicionar_conta(nova_conta)
+
+            print("Dados carregados com sucesso a partir de 'banco.json'!")
+        except FileNotFoundError:
+            print("Nenhum arquivo 'banco.json' encontrado. Iniciando com sistema limpo.")
+        except Exception as e:
+            print(f"Erro ao carregar dados: {e}")
+
     def _buscar_conta_input(self):
         cod_agencia = input("Código da agência: ").strip()
         agencia = self.agencias.get(cod_agencia)
@@ -230,10 +332,15 @@ class MenuInterface:
             print(" 3 - Apagar Agência")
             print(" 4 - Cadastrar Cliente e Abrir Conta")
             print(" 5 - Procurar Cliente (Por CPF ou nome)")
-            print(" 6 - Adicionar Co-titular (Segundo Cliente) em Conta")
+            print(" 6 - Adicionar Co-titular em Conta")
             print(" 7 - Consultar Saldo")
             print(" 8 - Realizar Depósito")
             print(" 9 - Realizar Saque")
+            print("10 - Listar Agências")
+            print("11 - Listar Clientes")
+            print("12 - Listar Contas")
+            print("13 - Relatório Geral do Banco")
+            print("14 - Salvar em JSON")
             print(" 0 - Sair")
             print("=" * 50)
 
@@ -257,7 +364,18 @@ class MenuInterface:
                 self.realizar_deposito()
             elif opcao == "9":
                 self.realizar_saque()
+            elif opcao == "10":
+                self.listar_agencias()
+            elif opcao == "11":
+                self.listar_clientes()
+            elif opcao == "12":
+                self.listar_contas()
+            elif opcao == "13":
+                self.gerar_relatorio_banco()
+            elif opcao == "14":
+                self.salvar_json()
             elif opcao == "0":
+                self.salvar_json()
                 print("\nEncerrando o sistema...")
                 break
             else:
