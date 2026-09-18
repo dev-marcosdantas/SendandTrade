@@ -1,6 +1,11 @@
 # Banco-PA
 Projeto de simulação de operações bancárias em Python.
 
+### Registro de Desenvolvimento (17/09/2026)
+**Desenvolvido por: Mateus Macedo Gonzaga**
+
+- **Implementação do .gitignore ao banco de dados**: Implementação do sistema para não exibir dados armazenados pelo programa durante o funcionamento.
+
 ### Registro de Desenvolvimento (16/09/2026)
 **Desenvolvido por: Mell Mass Ribeiro Melo**
 
