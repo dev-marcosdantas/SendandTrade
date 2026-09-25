@@ -1,5 +1,4 @@
-from menu import MenuInterface
+import menu
 
-if __name__ == "__main__":
-    app = MenuInterface()
-    app.exibir_menu()
+# o programa começa aqui, só chama o menu
+menu.exibir_menu()

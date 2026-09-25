@@ -1,17 +1,35 @@
-class Agencia:
-    def __init__(self, codigo: str, nome: str):
-        self.codigo = codigo.strip()
-        self.nome = nome.strip()
-        self.contas = {}  # Mapeia numero_conta -> Conta
+# listas das agências: a mesma posição é a mesma agência
+codigos = []
+nomes = []
 
-    def adicionar_conta(self, conta):
-        self.contas[conta.numero] = conta
 
-    def remover_conta(self, numero_conta: int) -> bool:
-        if numero_conta in self.contas:
-            del self.contas[numero_conta]
-            return True
-        return False
+# procura o código e devolve a posição (se não achar devolve -1)
+def buscar_por_codigo(codigo):
+    posicao = -1
+    i = 0
+    while i < len(codigos) and posicao == -1:
+        if codigos[i] == codigo:
+            posicao = i
+        i = i + 1
+    return posicao
 
-    def __str__(self):
-        return f"Agência Código: {self.codigo} | Nome: {self.nome} | Total Contas: {len(self.contas)}"
+
+# coloca a agência nova no final das listas
+def cadastrar(codigo, nome):
+    codigos.append(codigo)
+    nomes.append(nome)
+
+
+# tira a agência das duas listas na mesma posição
+def remover(posicao):
+    codigos.pop(posicao)
+    nomes.pop(posicao)
+
+
+# ordena pelo nome (bolha), trocando código e nome juntos
+def ordenar_por_nome():
+    for i in range(len(nomes)):
+        for j in range(len(nomes) - 1 - i):
+            if nomes[j].lower() > nomes[j + 1].lower():
+                nomes[j], nomes[j + 1] = nomes[j + 1], nomes[j]
+                codigos[j], codigos[j + 1] = codigos[j + 1], codigos[j]

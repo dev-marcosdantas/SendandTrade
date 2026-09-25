@@ -1,11 +1,6 @@
 # Banco-PA
 Projeto de simulação de operações bancárias em Python.
 
-### Registro de Desenvolvimento (17/09/2026)
-**Desenvolvido por: Mateus Macedo Gonzaga**
-
-- **Implementação do .gitignore ao banco de dados**: Implementação do sistema para não exibir dados armazenados pelo programa durante o funcionamento.
-
 ### Registro de Desenvolvimento (16/09/2026)
 **Desenvolvido por: Mell Mass Ribeiro Melo**
 
@@ -40,3 +35,12 @@ Funcionalidades implementadas (02/09/2026):
 - Operação de depósito com validações de valor
 - Operação de saque com verificação de saldo disponível
 - Estruturação e modularização dos arquivos (`cliente.py`, `conta.py` e `main.py`)
+
+### Registro de Desenvolvimento (25/09/2026)
+**Desenvolvido por: Mell Mass Ribeiro Melo**
+
+Refatoração do sistema (25/09/2026):
+- Listas paralelas: classes e dicionários substituídos por listas em `agencia.py`, `cliente.py` e `conta.py`, ligadas pela mesma posição.
+- Co-titulares: vínculo entre contas e clientes guardado nas listas `tit_contas` e `tit_cpfs`.
+- Ordenação por nome: listagens de agências, clientes e contas ordenadas com o método bolha.
+- Novo formato do `banco.json`: dados salvos como listas, sem dicionários.

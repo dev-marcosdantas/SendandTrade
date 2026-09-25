@@ -1,25 +1,11 @@
-{
-    "contador_conta": 2,
-    "clientes": [
-        {
-            "nome": "Mell",
-            "cpf": "09985942108"
-        }
-    ],
-    "agencias": [
-        {
-            "codigo": "2808",
-            "nome": "Mell"
-        }
-    ],
-    "contas": [
-        {
-            "numero": 1,
-            "agencia_codigo": "2808",
-            "saldo": 175.0,
-            "titulares_cpf": [
-                "09985942108"
-            ]
-        }
-    ]
-}
+[
+    ["2808"],
+    ["Mell"],
+    ["Mell"],
+    ["09985942108"],
+    [1],
+    ["2808"],
+    [175.0],
+    [1],
+    ["09985942108"]
+]
