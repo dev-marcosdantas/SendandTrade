@@ -1,4 +1,4 @@
 import menu
 
-# o programa começa aqui, só chama o menu
-menu.exibir_menu()
+if __name__ == "__main__":
+    menu.exibir_menu()

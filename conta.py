@@ -1,113 +1,115 @@
 import agencia
 import cliente
 
-# listas das contas: a mesma posição é a mesma conta
-numeros = []
-agencias = []  # código da agência de cada conta
-saldos = []
-
-# titulares ficam separados: cada posição liga um número de conta a um cpf
-# fiz assim pra uma conta poder ter mais de um titular
-tit_contas = []
-tit_cpfs = []
+# Mapeia Número da Conta -> Dicionário da Conta
+contas = {}
 
 
-# acha a conta pela agência + número (se não achar devolve -1)
-def buscar(codigo_agencia, numero):
-    posicao = -1
-    i = 0
-    while i < len(numeros) and posicao == -1:
-        if numeros[i] == numero and agencias[i] == codigo_agencia:
-            posicao = i
-        i = i + 1
-    return posicao
-
-
-# acha a conta só pelo número (usado na busca de cliente)
 def buscar_por_numero(numero):
-    posicao = -1
-    i = 0
-    while i < len(numeros) and posicao == -1:
-        if numeros[i] == numero:
-            posicao = i
-        i = i + 1
-    return posicao
+    if numero in contas:
+        return contas[numero]
+    return None
 
 
-# vê se o cpf já é titular dessa conta (devolve -1 se não for)
-def buscar_titular(numero, cpf):
-    posicao = -1
-    i = 0
-    while i < len(tit_contas) and posicao == -1:
-        if tit_contas[i] == numero and tit_cpfs[i] == cpf:
-            posicao = i
-        i = i + 1
-    return posicao
+def buscar_por_agencia_e_numero(codigo_agencia, numero):
+    conta = buscar_por_numero(numero)
+    if conta and conta["agencia"] == codigo_agencia:
+        return conta
+    return None
 
 
-# liga mais um cpf na conta
-def adicionar_titular(numero, cpf):
-    tit_contas.append(numero)
-    tit_cpfs.append(cpf)
+def abrir(codigo_agencia, cpf, tipo="Corrente"):
+    ag = agencia.buscar_por_codigo(codigo_agencia)
+    if not ag:
+        print("Erro: Agência não existe.")
+        return None
 
+    cli = cliente.buscar_por_cpf(cpf)
+    if not cli:
+        print("Erro: Cliente não cadastrado.")
+        return None
 
-# abre a conta com saldo zero e já coloca o primeiro titular
-# nenhuma conta é apagada, então o número novo é a quantidade + 1
-def abrir(codigo_agencia, cpf):
-    numero = len(numeros) + 1
-    numeros.append(numero)
-    agencias.append(codigo_agencia)
-    saldos.append(0.0)
-    adicionar_titular(numero, cpf)
+    tipos_validos = ["Corrente", "Poupança", "Salário"]
+    if tipo not in tipos_validos:
+        tipo = "Corrente"
+
+    numero = len(contas) + 1
+    nova_conta = {
+        "numero": numero,
+        "agencia": codigo_agencia,
+        "tipo": tipo,
+        "saldo": 0.0,
+        "titulares": [cli["cpf"]]
+    }
+    contas[numero] = nova_conta
     return numero
 
 
-# o valor já vem conferido do menu, aqui só soma/subtrai
-def depositar(posicao, valor):
-    saldos[posicao] = saldos[posicao] + valor
+def adicionar_titular(numero, cpf):
+    conta = buscar_por_numero(numero)
+    cpf_valido = cliente.validar_cpf(cpf)
+    if conta and cpf_valido:
+        if cpf_valido not in conta["titulares"]:
+            conta["titulares"].append(cpf_valido)
+            return True
+    return False
 
 
-def sacar(posicao, valor):
-    saldos[posicao] = saldos[posicao] - valor
+def depositar(numero, valor):
+    conta = buscar_por_numero(numero)
+    if conta and valor > 0:
+        conta["saldo"] += valor
+        return True
+    return False
 
 
-# conta quantas contas uma agência tem
+def sacar(numero, valor):
+    conta = buscar_por_numero(numero)
+    if not conta or valor <= 0:
+        return False
+
+    # Regras por tipo de conta
+    if conta["tipo"] == "Salário" and valor > conta["saldo"]:
+        print("Erro: Conta Salário não permite saldo negativo.")
+        return False
+
+    if conta["saldo"] >= valor:
+        conta["saldo"] -= valor
+        return True
+    
+    return False
+
+
 def contar_da_agencia(codigo_agencia):
     total = 0
-    for i in range(len(agencias)):
-        if agencias[i] == codigo_agencia:
-            total = total + 1
+    for conta in contas.values():
+        if conta["agencia"] == codigo_agencia:
+            total += 1
     return total
 
 
-# junta o nome de todos os titulares da conta separados por vírgula
-def nomes_titulares(numero):
-    texto = ""
-    for i in range(len(tit_contas)):
-        if tit_contas[i] == numero:
-            if texto != "":
-                texto = texto + ", "
-            texto = texto + cliente.nome_do_cpf(tit_cpfs[i])
-    return texto
+def nomes_titulares(conta):
+    nomes = []
+    for cpf in conta["titulares"]:
+        cli = cliente.buscar_por_cpf(cpf)
+        if cli:
+            nomes.append(cli["nome"])
+        else:
+            nomes.append("?")
+    return ", ".join(nomes)
 
 
-# ordena as contas pelo nome dos titulares (bolha)
-# troca número, agência e saldo juntos pra não misturar as contas
-# os titulares não precisam trocar pq estão ligados pelo número da conta
 def ordenar_por_titular():
-    for i in range(len(numeros)):
-        for j in range(len(numeros) - 1 - i):
-            nome_atual = nomes_titulares(numeros[j]).lower()
-            nome_prox = nomes_titulares(numeros[j + 1]).lower()
-            if nome_atual > nome_prox:
-                numeros[j], numeros[j + 1] = numeros[j + 1], numeros[j]
-                agencias[j], agencias[j + 1] = agencias[j + 1], agencias[j]
-                saldos[j], saldos[j + 1] = saldos[j + 1], saldos[j]
+    lista = list(contas.values())
+    for i in range(len(lista)):
+        for j in range(len(lista) - 1 - i):
+            if nomes_titulares(lista[j]).lower() > nomes_titulares(lista[j + 1]).lower():
+                lista[j], lista[j + 1] = lista[j + 1], lista[j]
+    return lista
 
 
-# texto da conta pra mostrar na tela
-def descricao(i):
-    pos_agencia = agencia.buscar_por_codigo(agencias[i])
-    nome_agencia = agencia.nomes[pos_agencia]
-    return (f"Agência: {agencias[i]} ({nome_agencia}) | Conta: {numeros[i]} | "
-            f"Titulares: [{nomes_titulares(numeros[i])}] | Saldo: R$ {saldos[i]:.2f}")
+def descricao(conta):
+    ag = agencia.buscar_por_codigo(conta["agencia"])
+    nome_ag = ag["nome"] if ag else "Desconhecida"
+    return (f"Agência: {conta['agencia']} ({nome_ag}) | Conta: {conta['numero']} | "
+            f"Tipo: {conta['tipo']} | Titulares: [{nomes_titulares(conta)}] | Saldo: R$ {conta['saldo']:.2f}")

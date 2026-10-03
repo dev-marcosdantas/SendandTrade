@@ -1,35 +1,44 @@
-# listas das agências: a mesma posição é a mesma agência
-codigos = []
-nomes = []
+# Mapeia Código -> Dicionário da Agência
+agencias = {}
 
 
-# procura o código e devolve a posição (se não achar devolve -1)
 def buscar_por_codigo(codigo):
-    posicao = -1
-    i = 0
-    while i < len(codigos) and posicao == -1:
-        if codigos[i] == codigo:
-            posicao = i
-        i = i + 1
-    return posicao
+    cod = codigo.strip()
+    if cod in agencias:
+        return agencias[cod]
+    return None
 
 
-# coloca a agência nova no final das listas
 def cadastrar(codigo, nome):
-    codigos.append(codigo)
-    nomes.append(nome)
+    cod = codigo.strip()
+    if cod in agencias:
+        print("Erro: Já existe agência cadastrada com este código.")
+        return None
+
+    agencia = {
+        "codigo": cod,
+        "nome": nome.strip()
+    }
+    agencias[cod] = agencia
+    return agencia
 
 
-# tira a agência das duas listas na mesma posição
-def remover(posicao):
-    codigos.pop(posicao)
-    nomes.pop(posicao)
+def remover(codigo):
+    cod = codigo.strip()
+    if cod in agencias:
+        del agencias[cod]
+        return True
+    return False
 
 
-# ordena pelo nome (bolha), trocando código e nome juntos
 def ordenar_por_nome():
-    for i in range(len(nomes)):
-        for j in range(len(nomes) - 1 - i):
-            if nomes[j].lower() > nomes[j + 1].lower():
-                nomes[j], nomes[j + 1] = nomes[j + 1], nomes[j]
-                codigos[j], codigos[j + 1] = codigos[j + 1], codigos[j]
+    lista = list(agencias.values())
+    for i in range(len(lista)):
+        for j in range(len(lista) - 1 - i):
+            if lista[j]["nome"].lower() > lista[j + 1]["nome"].lower():
+                lista[j], lista[j + 1] = lista[j + 1], lista[j]
+    return lista
+
+
+def descricao(agencia):
+    return f"Agência Código: {agencia['codigo']} | Nome: {agencia['nome']}"

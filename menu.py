@@ -5,41 +5,31 @@ import cliente
 import conta
 
 
-# ---------- funções de apoio pra ler as entradas ----------
-
-# lê um valor em dinheiro (aceita vírgula ou ponto), se for inválido devolve -1
 def ler_valor(mensagem):
     texto = input(mensagem).strip().replace(",", ".")
-    # tira um ponto só pra conferir se o resto é tudo número
     if texto.replace(".", "", 1).isdigit():
         return float(texto)
     return -1
 
 
-# pede agência e número da conta e devolve a posição da conta (ou -1)
 def pedir_conta():
     codigo = input("Código da agência: ").strip()
-    if agencia.buscar_por_codigo(codigo) == -1:
+    if not agencia.buscar_por_codigo(codigo):
         print(f"Erro: Agência {codigo} não encontrada.")
-        return -1
+        return None
 
     texto = input("Número da conta: ").strip()
-    if texto.isdigit():
-        numero = int(texto)
-    else:
+    if not texto.isdigit():
         print("Erro: Número da conta inválido.")
-        return -1
+        return None
 
-    posicao = conta.buscar(codigo, numero)
-    if posicao == -1:
+    numero = int(texto)
+    c = conta.buscar_por_agencia_e_numero(codigo, numero)
+    if not c:
         print(f"Erro: Conta {numero} não encontrada na Agência {codigo}.")
-    return posicao
+        return None
 
-
-# mostra uma agência com a quantidade de contas dela
-def mostrar_agencia(i):
-    total = conta.contar_da_agencia(agencia.codigos[i])
-    print(f"Agência Código: {agencia.codigos[i]} | Nome: {agencia.nomes[i]} | Total Contas: {total}")
+    return c
 
 
 # ---------- agências ----------
@@ -47,287 +37,243 @@ def mostrar_agencia(i):
 def cadastrar_agencia():
     print("\n--- CADASTRAR NOVA AGÊNCIA ---")
     codigo = input("Código da agência (ex: 0001): ").strip()
-
-    # não deixa código vazio nem repetido
     if codigo == "":
-        print("Erro: O código da agência não pode ser vazio.")
-    elif agencia.buscar_por_codigo(codigo) != -1:
-        print("Erro: Já existe uma agência cadastrada com este código.")
-    else:
-        nome = input("Nome/Região da agência: ").strip()
-        agencia.cadastrar(codigo, nome)
+        print("Erro: Código não pode ser vazio.")
+        return
+
+    nome = input("Nome/Região da agência: ").strip()
+    if agencia.cadastrar(codigo, nome):
         print(f"Agência '{nome}' (Código: {codigo}) cadastrada com sucesso!")
 
 
 def procurar_agencia():
     print("\n--- PROCURAR AGÊNCIA ---")
     termo = input("Digite o código ou nome da agência: ").strip().lower()
-    if termo == "":
-        print("Erro: Termo de busca inválido.")
-        return
-
-    achadas = 0
-    for i in range(len(agencia.codigos)):
-        # serve se o termo aparecer em qualquer parte do código ou do nome
-        if termo in agencia.codigos[i].lower() or termo in agencia.nomes[i].lower():
-            achadas = achadas + 1
-            print()
-            mostrar_agencia(i)
-
-            # mostra as contas que são dessa agência
+    achou = False
+    for ag in agencia.agencias.values():
+        if termo in ag["codigo"].lower() or termo in ag["nome"].lower():
+            achou = True
+            print(f"\n{agencia.descricao(ag)}")
             print("  Contas vinculadas nesta agência:")
-            qtd_contas = 0
-            for j in range(len(conta.numeros)):
-                if conta.agencias[j] == agencia.codigos[i]:
-                    print(f"    - {conta.descricao(j)}")
-                    qtd_contas = qtd_contas + 1
-            if qtd_contas == 0:
+            total = 0
+            for c in conta.contas.values():
+                if c["agencia"] == ag["codigo"]:
+                    print(f"    - {conta.descricao(c)}")
+                    total += 1
+            if total == 0:
                 print("    - Nenhuma conta vinculada.")
-
-    if achadas == 0:
+    if not achou:
         print(f"Nenhuma agência encontrada com o termo '{termo}'.")
 
 
 def apagar_agencia():
     print("\n--- APAGAR AGÊNCIA ---")
-    codigo = input("Digite o código da agência a ser removida: ").strip()
-    posicao = agencia.buscar_por_codigo(codigo)
+    codigo = input("Digite o código da agência a remover: ").strip()
     qtd_contas = conta.contar_da_agencia(codigo)
-
-    # só deixa apagar se a agência existir e não tiver nenhuma conta
-    if posicao == -1:
-        print(f"Erro: Agência {codigo} não encontrada.")
-    elif qtd_contas > 0:
+    if qtd_contas > 0:
         print(f"Erro: A agência {codigo} possui {qtd_contas} conta(s) ativa(s) e não pode ser apagada.")
-    else:
-        agencia.remover(posicao)
+    elif agencia.remover(codigo):
         print(f"Agência {codigo} removida com sucesso!")
+    else:
+        print(f"Erro: Agência {codigo} não encontrada.")
 
 
 # ---------- clientes e contas ----------
 
 def cadastrar_cliente_e_conta():
     print("\n--- CADASTRO DE CLIENTE E ABERTURA DE CONTA ---")
-    # precisa ter pelo menos uma agência pra abrir conta
-    if len(agencia.codigos) == 0:
-        print("Erro: Nenhuma agência cadastrada. Cadastre uma agência primeiro (Opção 1).")
+    if len(agencia.agencias) == 0:
+        print("Erro: Nenhuma agência cadastrada. Cadastre uma agência primeiro.")
         return
 
-    codigo = input("Código da Agência onde a conta será aberta: ").strip()
-    if agencia.buscar_por_codigo(codigo) == -1:
-        print(f"Erro: Agência {codigo} não encontrada.")
+    codigo_ag = input("Código da agência: ").strip()
+    if not agencia.buscar_por_codigo(codigo_ag):
+        print("Erro: Agência não encontrada.")
         return
 
     nome = input("Nome do cliente: ").strip()
-    cpf = input("CPF do cliente (apenas números): ").strip()
-    if nome == "" or cpf == "":
-        print("Erro: Nome e CPF são obrigatórios.")
+    cpf = input("CPF do cliente (11 dígitos): ").strip()
+
+    cpf_valido = cliente.validar_cpf(cpf)
+    if not cpf_valido:
+        print("Erro: CPF inválido.")
         return
 
-    # se o cpf já tá cadastrado usa o mesmo cliente, senão cadastra
-    pos_cliente = cliente.buscar_por_cpf(cpf)
-    if pos_cliente == -1:
-        pos_cliente = cliente.cadastrar(nome, cpf)
+    cli = cliente.buscar_por_cpf(cpf_valido)
+    if not cli:
+        cli = cliente.cadastrar(nome, cpf_valido)
 
-    numero = conta.abrir(codigo, cpf)
-    print(f"\nConta {numero} criada com sucesso na Agência {codigo}!")
-    print(f"Titular: {cliente.nomes[pos_cliente]}")
+    print("\nEscolha o Tipo de Conta:")
+    print("1 - Corrente")
+    print("2 - Poupança")
+    print("3 - Salário")
+    op_tipo = input("Opção: ").strip()
+
+    tipo = "Corrente"
+    if op_tipo == "2":
+        tipo = "Poupança"
+    elif op_tipo == "3":
+        tipo = "Salário"
+
+    num_conta = conta.abrir(codigo_ag, cpf_valido, tipo)
+    if num_conta:
+        print(f"\nConta {tipo} nº {num_conta} criada com sucesso!")
 
 
 def procurar_cliente():
-    print("\n--- PROCURAR CLIENTE ---")
-    termo = input("Digite o CPF ou nome do cliente: ").strip().lower()
-    if termo == "":
-        print("Erro: Termo de busca inválido.")
-        return
-
+    print("\n--- PROCURAR CLIENTE POR CPF OU NOME ---")
+    termo = input("Digite o CPF ou Nome do cliente: ").strip().lower()
     achados = 0
-    for i in range(len(cliente.cpfs)):
-        if termo in cliente.cpfs[i].lower() or termo in cliente.nomes[i].lower():
-            achados = achados + 1
-            print(f"\n{cliente.descricao(i)}")
-
-            # procura nos titulares todas as contas desse cpf
+    for cli in cliente.clientes.values():
+        if termo in cli["cpf"] or termo in cli["nome"].lower():
+            achados += 1
+            print(f"\n{cliente.descricao(cli)}")
             print("  Contas associadas:")
-            qtd_contas = 0
-            for j in range(len(conta.tit_cpfs)):
-                if conta.tit_cpfs[j] == cliente.cpfs[i]:
-                    p = conta.buscar_por_numero(conta.tit_contas[j])
-                    print(f"    - Agência: {conta.agencias[p]} | Conta: {conta.numeros[p]} | Saldo: R$ {conta.saldos[p]:.2f}")
-                    qtd_contas = qtd_contas + 1
-            if qtd_contas == 0:
-                print("    - Nenhuma conta vinculada no momento.")
+            qtd_c = 0
+            for c in conta.contas.values():
+                if cli["cpf"] in c["titulares"]:
+                    print(f"    - Agência: {c['agencia']} | Conta nº: {c['numero']} | Tipo: {c['tipo']} | Saldo: R$ {c['saldo']:.2f}")
+                    qtd_c += 1
+            if qtd_c == 0:
+                print("    - Nenhuma conta vinculada.")
 
     if achados == 0:
-        print(f"Nenhum cliente encontrado para '{termo}'.")
+        print("Nenhum cliente encontrado.")
 
 
 def adicionar_titular_em_conta():
-    print("\n--- ADICIONAR NOVO TITULAR A UMA CONTA EXISTENTE ---")
-    posicao = pedir_conta()
-    if posicao == -1:
+    print("\n--- ADICIONAR CO-TITULAR EM CONTA ---")
+    c = pedir_conta()
+    if not c:
         return
 
-    cpf = input("CPF do novo titular a ser adicionado: ").strip()
-    if cpf == "":
-        print("Erro: CPF é obrigatório.")
+    cpf = input("CPF do novo titular: ").strip()
+    cpf_valido = cliente.validar_cpf(cpf)
+    if not cpf_valido:
+        print("Erro: CPF inválido.")
         return
 
-    # se o cliente ainda não existe, cadastra ele antes
-    if cliente.buscar_por_cpf(cpf) == -1:
-        print("Cliente não encontrado com esse CPF. Vamos cadastrá-lo.")
-        nome = input("Nome do novo cliente: ").strip()
-        if nome == "":
-            print("Erro: Nome é obrigatório.")
-            return
-        cliente.cadastrar(nome, cpf)
+    if not cliente.buscar_por_cpf(cpf_valido):
+        print("Cliente novo. Vamos cadastrar:")
+        nome = input("Nome do cliente: ").strip()
+        cliente.cadastrar(nome, cpf_valido)
 
-    # não deixa colocar a mesma pessoa duas vezes na conta
-    numero = conta.numeros[posicao]
-    if conta.buscar_titular(numero, cpf) != -1:
-        print("Este cliente já é titular desta conta.")
+    if conta.adicionar_titular(c["numero"], cpf_valido):
+        print("Co-titular adicionado com sucesso!")
     else:
-        conta.adicionar_titular(numero, cpf)
-        print(f"Cliente {cliente.nome_do_cpf(cpf)} adicionado como co-titular da Conta {numero}!")
+        print("Erro: Cliente já é titular desta conta ou dados inválidos.")
 
 
-# ---------- operações da conta ----------
+# ---------- operações ----------
 
 def consultar_saldo():
-    print("\n--- CONSULTA DE SALDO ---")
-    posicao = pedir_conta()
-    if posicao != -1:
-        print(f"\n{conta.descricao(posicao)}")
+    print("\n--- CONSULTAR SALDO ---")
+    c = pedir_conta()
+    if c:
+        print(f"\n{conta.descricao(c)}")
 
 
 def realizar_deposito():
     print("\n--- REALIZAR DEPÓSITO ---")
-    posicao = pedir_conta()
-    if posicao == -1:
+    c = pedir_conta()
+    if not c:
         return
 
-    # confere o valor antes de mexer no saldo
     valor = ler_valor("Valor a depositar: R$ ")
-    if valor == -1:
-        print("Erro: Valor monetário inválido.")
-    elif valor <= 0:
-        print("Erro: O valor deve ser maior que zero.")
+    if conta.depositar(c["numero"], valor):
+        print(f"Depósito de R$ {valor:.2f} realizado! Saldo atual: R$ {c['saldo']:.2f}")
     else:
-        conta.depositar(posicao, valor)
-        print(f"Depósito de R$ {valor:.2f} realizado com sucesso! Saldo atual: R$ {conta.saldos[posicao]:.2f}")
+        print("Erro: Valor inválido para depósito.")
 
 
 def realizar_saque():
     print("\n--- REALIZAR SAQUE ---")
-    posicao = pedir_conta()
-    if posicao == -1:
+    c = pedir_conta()
+    if not c:
         return
 
-    # não deixa sacar mais do que tem na conta
     valor = ler_valor("Valor a sacar: R$ ")
-    if valor == -1:
-        print("Erro: Valor monetário inválido.")
-    elif valor <= 0 or valor > conta.saldos[posicao]:
-        print("Erro: Saldo insuficiente ou valor inválido.")
+    if conta.sacar(c["numero"], valor):
+        print(f"Saque de R$ {valor:.2f} realizado! Saldo restante: R$ {c['saldo']:.2f}")
     else:
-        conta.sacar(posicao, valor)
-        print(f"Saque de R$ {valor:.2f} realizado com sucesso! Saldo restante: R$ {conta.saldos[posicao]:.2f}")
+        print("Erro: Saque não permitido ou saldo insuficiente.")
 
 
-# ---------- listagens (sempre ordenadas por nome) ----------
+# ---------- listagens e relatório ----------
 
 def listar_agencias():
     print("\n--- LISTA DE AGÊNCIAS ---")
-    if len(agencia.codigos) == 0:
-        print("Nenhuma agência cadastrada.")
-    else:
-        agencia.ordenar_por_nome()
-        for i in range(len(agencia.codigos)):
-            mostrar_agencia(i)
+    lista = agencia.ordenar_por_nome()
+    for ag in lista:
+        print(agencia.descricao(ag))
 
 
 def listar_clientes():
     print("\n--- LISTA DE CLIENTES ---")
-    if len(cliente.cpfs) == 0:
-        print("Nenhum cliente cadastrado.")
-    else:
-        cliente.ordenar_por_nome()
-        for i in range(len(cliente.cpfs)):
-            print(cliente.descricao(i))
+    lista = cliente.ordenar_por_nome()
+    for cli in lista:
+        print(cliente.descricao(cli))
 
 
 def listar_contas():
     print("\n--- LISTA DE CONTAS ---")
-    if len(conta.numeros) == 0:
-        print("Nenhuma conta cadastrada.")
-    else:
-        conta.ordenar_por_titular()
-        for i in range(len(conta.numeros)):
-            print(conta.descricao(i))
+    lista = conta.ordenar_por_titular()
+    for c in lista:
+        print(conta.descricao(c))
 
-
-# ---------- relatório ----------
 
 def gerar_relatorio_banco():
     print("\n" + "=" * 50)
     print("           RELATÓRIO GERAL DO BANCO          ")
     print("=" * 50)
-
-    # soma o saldo de todas as contas
-    saldo_total = 0.0
-    for i in range(len(conta.saldos)):
-        saldo_total = saldo_total + conta.saldos[i]
-
-    print(f"Total de Agências Cadastradas: {len(agencia.codigos)}")
-    print(f"Total de Clientes Cadastrados: {len(cliente.cpfs)}")
-    print(f"Total de Contas Abertas:      {len(conta.numeros)}")
+    saldo_total = sum(c["saldo"] for c in conta.contas.values())
+    print(f"Total de Agências Cadastradas: {len(agencia.agencias)}")
+    print(f"Total de Clientes Cadastrados: {len(cliente.clientes)}")
+    print(f"Total de Contas Abertas:      {len(conta.contas)}")
     print(f"Saldo Total no Banco:          R$ {saldo_total:.2f}")
     print("=" * 50)
 
 
-# ---------- salvar e carregar o json ----------
-
-# joga cada item de uma lista pra dentro de outra
-def copiar(origem, destino):
-    for item in origem:
-        destino.append(item)
-
+# ---------- JSON com Dicionários ----------
 
 def salvar_json():
-    # junta todas as listas numa só pra salvar
-    # a ordem aqui tem que ser a mesma do carregar_json
-    dados = [agencia.codigos, agencia.nomes,
-             cliente.nomes, cliente.cpfs,
-             conta.numeros, conta.agencias, conta.saldos,
-             conta.tit_contas, conta.tit_cpfs]
-
-    arquivo = open("banco.json", "w", encoding="utf-8")
-    json.dump(dados, arquivo, ensure_ascii=False, indent=4)
-    arquivo.close()
-    print("\nDados salvos em 'banco.json' com sucesso!")
+    dados = {
+        "agencias": list(agencia.agencias.values()),
+        "clientes": list(cliente.clientes.values()),
+        "contas": list(conta.contas.values())
+    }
+    try:
+        with open("banco.json", "w", encoding="utf-8") as arq:
+            json.dump(dados, arq, ensure_ascii=False, indent=4)
+        print("\nDados salvos em 'banco.json' com sucesso!")
+    except Exception as e:
+        print(f"Erro ao salvar arquivo JSON: {e}")
 
 
 def carregar_json():
-    # se ainda não tem arquivo, o sistema começa vazio
     if not os.path.exists("banco.json"):
-        print("Nenhum arquivo 'banco.json' encontrado. Iniciando com sistema limpo.")
+        print("Nenhum arquivo 'banco.json' encontrado. Sistema iniciado limpo.")
         return
 
-    arquivo = open("banco.json", "r", encoding="utf-8")
-    dados = json.load(arquivo)
-    arquivo.close()
+    try:
+        with open("banco.json", "r", encoding="utf-8") as arq:
+            dados = json.load(arq)
 
-    # devolve cada lista pro seu lugar, na mesma ordem do salvar_json
-    copiar(dados[0], agencia.codigos)
-    copiar(dados[1], agencia.nomes)
-    copiar(dados[2], cliente.nomes)
-    copiar(dados[3], cliente.cpfs)
-    copiar(dados[4], conta.numeros)
-    copiar(dados[5], conta.agencias)
-    copiar(dados[6], conta.saldos)
-    copiar(dados[7], conta.tit_contas)
-    copiar(dados[8], conta.tit_cpfs)
-    print("Dados carregados com sucesso a partir de 'banco.json'!")
+        # Reconstrui agências
+        for ag in dados.get("agencias", []):
+            agencia.agencias[ag["codigo"]] = ag
+
+        # Reconstrui clientes
+        for cli in dados.get("clientes", []):
+            cliente.clientes[cli["cpf"]] = cli
+
+        # Reconstrui contas
+        for c in dados.get("contas", []):
+            conta.contas[c["numero"]] = c
+
+        print("Dados carregados com sucesso a partir de 'banco.json'!")
+    except Exception as e:
+        print(f"Erro ao carregar 'banco.json': {e}")
 
 
 # ---------- menu principal ----------
@@ -336,7 +282,6 @@ def exibir_menu():
     carregar_json()
     opcao = ""
 
-    # fica repetindo até escolher 0
     while opcao != "0":
         print("\n" + "=" * 50)
         print("         SISTEMA BANCARIO - SEND&TRADE       ")
@@ -389,7 +334,6 @@ def exibir_menu():
         elif opcao == "14":
             salvar_json()
         elif opcao == "0":
-            # salva sozinho antes de sair pra não perder nada
             salvar_json()
             print("\nEncerrando o sistema...")
         else:

@@ -1,43 +1,49 @@
-# listas dos clientes: a mesma posição nas duas listas é o mesmo cliente
-nomes = []
-cpfs = []
+# Mapeia CPF -> Dicionário do Cliente
+clientes = {}
 
 
-# procura o cpf na lista e devolve a posição (se não achar devolve -1)
+def validar_cpf(cpf):
+    # Remove espaços e caracteres não numéricos simples
+    cpf_limpo = cpf.strip().replace(".", "").replace("-", "")
+    if len(cpf_limpo) == 11 and cpf_limpo.isdigit():
+        return cpf_limpo
+    return None
+
+
 def buscar_por_cpf(cpf):
-    posicao = -1
-    i = 0
-    while i < len(cpfs) and posicao == -1:
-        if cpfs[i] == cpf:
-            posicao = i
-        i = i + 1
-    return posicao
+    cpf_valido = validar_cpf(cpf)
+    if cpf_valido and cpf_valido in clientes:
+        return clientes[cpf_valido]
+    return None
 
 
-# coloca o cliente novo no final das listas e devolve a posição dele
 def cadastrar(nome, cpf):
-    nomes.append(nome)
-    cpfs.append(cpf)
-    return len(nomes) - 1
+    cpf_valido = validar_cpf(cpf)
+    if not cpf_valido:
+        print("Erro: CPF inválido. Deve conter 11 dígitos numéricos.")
+        return None
+
+    if cpf_valido in clientes:
+        print("Erro: Já existe um cliente cadastrado com este CPF.")
+        return None
+
+    cliente = {
+        "nome": nome.strip(),
+        "cpf": cpf_valido
+    }
+    clientes[cpf_valido] = cliente
+    return cliente
 
 
-# pega o nome pelo cpf, usado pra mostrar os titulares das contas
-def nome_do_cpf(cpf):
-    posicao = buscar_por_cpf(cpf)
-    if posicao == -1:
-        return "?"
-    return nomes[posicao]
-
-
-# ordena por nome (bolha), trocando nome e cpf juntos pra não misturar
 def ordenar_por_nome():
-    for i in range(len(nomes)):
-        for j in range(len(nomes) - 1 - i):
-            if nomes[j].lower() > nomes[j + 1].lower():
-                nomes[j], nomes[j + 1] = nomes[j + 1], nomes[j]
-                cpfs[j], cpfs[j + 1] = cpfs[j + 1], cpfs[j]
+    # Ordena a lista de dicionários de clientes pelo nome
+    lista = list(clientes.values())
+    for i in range(len(lista)):
+        for j in range(len(lista) - 1 - i):
+            if lista[j]["nome"].lower() > lista[j + 1]["nome"].lower():
+                lista[j], lista[j + 1] = lista[j + 1], lista[j]
+    return lista
 
 
-# texto do cliente pra mostrar na tela
-def descricao(i):
-    return f"Cliente: {nomes[i]} | CPF: {cpfs[i]}"
+def descricao(cliente):
+    return f"Cliente: {cliente['nome']} | CPF: {cliente['cpf']}"
