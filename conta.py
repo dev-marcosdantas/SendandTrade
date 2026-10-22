@@ -114,32 +114,36 @@ def descricao(conta):
     return (f"Agência: {conta['agencia']} ({nome_ag}) | Conta: {conta['numero']} | "
             f"Tipo: {conta['tipo']} | Titulares: [{nomes_titulares(conta)}] | Saldo: R$ {conta['saldo']:.2f}")
 
-## pega os nomes de clientes individuais e monta uma lista sem repetir##
+def _valores(colecao):
+    return colecao.values() if isinstance(colecao, dict) else colecao
+
+
+# pega os nomes de clientes individuais e monta uma lista sem repetir
 def listar_clientes(clientes):
-    lista_de_cliente = []
-    cliente = nome.value()
-    if cliente not in lista_decliente:
-        cliente.append(lista_de_cliente)
-    else:
-        False
-    return lista_de_cliente
-## pega os nomes das agencias individuais e monta uma lista sem repetir##    
-def listar_agencias(agencia):
-    lista_de_agencia = []
-    agencia = nome.value()
-        if agencia not in lista_de_agencia:
-        agencia.append(lista_de_agencia)
-    else:
-        False
-    return lista_de_agencia
+    return list(dict.fromkeys([cliente.nome for cliente in _valores(clientes)]))
 
-## calcula cumulativamente o saldo total do banco
-def montante_total_banco(conta):
-    montante = [sum(saldo.value()) for saldo in conta]
-    return montante
 
-## procura pelo maior saldo do banco, devolve titulares
-def busca_maior_saldo(conta):
-    maior_saldo = [max(saldo.value()) for saldo in contas]
-    maior_contribuidor = [titulares for titulares in conta if (maior_saldo == saldo.value())]
-    return maior_contribuidor 
+# pega os nomes das agências individuais e monta uma lista sem repetir
+def listar_agencias(agencias):
+    return list(dict.fromkeys([agencia.nome for agencia in _valores(agencias)]))
+
+
+# calcula cumulativamente o saldo total do banco
+def montante_total_banco(contas):
+    return sum([conta.saldo for conta in _valores(contas)])
+
+
+# procura pelo maior saldo do banco, devolve titulares
+def busca_maior_saldo(contas):
+    contas = list(_valores(contas))
+    if not contas:
+        return []
+
+    maior_saldo = max([conta.saldo for conta in contas])
+
+    maior_contribuidor = [
+        titular.nome
+        for conta in contas if conta.saldo == maior_saldo
+        for titular in conta.titulares
+    ]
+    return list(dict.fromkeys(maior_contribuidor)) 
