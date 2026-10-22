@@ -3,7 +3,7 @@ Projeto de simulação de operações bancárias em Python.
 ### Registro de Desenvolvimento (21/10/2026)
 **Desenvolvido por: Mateus Macedo Gonzaga**
 
-- **Implementação de funções da etapa 4**: listar contas com saldo positivo, listar clientes e agências, calcular saldo total do banco, encontrar maior saldo
+- **Implementação de funções da etapa 4**: listar clientes e agências, calcular saldo total do banco, encontrar maior saldo
 
 ---
 
