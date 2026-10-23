@@ -1,5 +1,31 @@
 # Banco-PA
 Projeto de simulação de operações bancárias em Python.
+### Registro de Desenvolvimento (22/10/2026)
+**Desenvolvido por: Marcos Antônio Brito Dantas**
+
+#### 1. Resumo das Modificações e Implementações (Etapa 4):
+- **Ajustes na Arquitetura para Suporte Híbrido (Terminal + Web)**: Refatoração dos módulos `conta.py` e `menu.py` para corrigir inconsistências de compatibilidade, garantindo que o sistema funcione de forma integrada tanto via terminal quanto na interface web sem quebras ou conflitos com o arquivo de persistência `banco.json`.
+- **Implementação de Funções de Alta Ordem e Programação Funcional**:
+  - `listar_contas_saldo_positivo()`: Filtra contas ativas com saldo maior que zero utilizando `filter()` e expressões `lambda`.
+  - `montante_total_banco()`: Recalcula e consolida o saldo total custodiado pelo banco utilizando `reduce()`.
+  - `busca_maior_saldo()` e `busca_menor_saldo()`: Identificam os valores extremos de saldo do banco via `max()` e `min()`.
+  - `obter_dados_dashboard()`: Método estruturado que consolida métricas para alimentar a interface do Dashboard.
+- **Refatoração de Ordenações**: Atualização das funções de ordenação de contas, clientes e agências utilizando `sorted()` e chaves `lambda` em substituição a laços manuais.
+- **Criação da Interface Web (Dashboard)**:
+  - Criação do servidor em Flask (`app.py`) para leitura e disponibilização dos dados em formato web.
+  - Implementação do Front-End em HTML5 (`templates/index.html`) e estilização com CSS3 (`static/style.css`) para exibição das métricas financeiras (total de clientes, contas, saldo total, saldo médio, maior/menor saldo e listagens).
+
+---
+
+### 🚀 Como Rodar o Projeto (Instruções para a Equipe)
+
+O projeto pode ser executado em dois modos: **Modo Terminal** ou **Modo Web (Dashboard)**.
+
+#### Pré-requisito Único
+Certifique-se de ter o Python instalado na sua máquina. Para rodar a interface Web, instale o Flask executando no terminal:
+```bash
+pip install flask
+
 ### Registro de Desenvolvimento (21/10/2026)
 **Desenvolvido por: Mateus Macedo Gonzaga**
 
