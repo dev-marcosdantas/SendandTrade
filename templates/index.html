@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send&Trade - Dashboard Financeiro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>🏛️ Send&Trade - Dashboard Financeiro</h1>
+        <p>Universidade Federal de Sergipe (UFS) - Programação A</p>
+    </header>
+
+    <main class="container">
+        <!-- Dashboard / Métricas Principais -->
+        <section class="cards-grid">
+            <div class="card">
+                <h3>👥 Clientes</h3>
+                <p class="number">{{ metrics.total_clientes }}</p>
+            </div>
+            <div class="card">
+                <h3>💳 Contas Abertas</h3>
+                <p class="number">{{ metrics.total_contas }}</p>
+            </div>
+            <div class="card highlight">
+                <h3>💰 Saldo Total</h3>
+                <p class="number">R$ {{ "%.2f"|format(metrics.saldo_total) }}</p>
+            </div>
+            <div class="card">
+                <h3>📈 Maior Saldo</h3>
+                <p class="number">R$ {{ "%.2f"|format(metrics.maior_saldo) }}</p>
+            </div>
+            <div class="card">
+                <h3>📉 Menor Saldo</h3>
+                <p class="number">R$ {{ "%.2f"|format(metrics.menor_saldo) }}</p>
+            </div>
+            <div class="card">
+                <h3>📊 Saldo Médio</h3>
+                <p class="number">R$ {{ "%.2f"|format(metrics.saldo_medio) }}</p>
+            </div>
+        </section>
+
+        <!-- Tabelas de Dados -->
+        <section class="tables-section">
+            <div class="table-card">
+                <h2>🏢 Agências Cadastradas</h2>
+                <ul>
+                    {% for ag in agencias %}
+                        <li><strong>Código {{ ag.codigo }}</strong> - {{ ag.nome }}</li>
+                    {% else %}
+                        <li>Nenhuma agência cadastrada.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="table-card">
+                <h2>👤 Clientes Cadastrados</h2>
+                <ul>
+                    {% for cli in clientes %}
+                        <li><strong>{{ cli.nome }}</strong> (CPF: {{ cli.cpf }})</li>
+                    {% else %}
+                        <li>Nenhum cliente cadastrado.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </section>
+
+        <section class="table-card full-width">
+            <h2>✅ Contas com Saldo Positivo (> R$ 0,00)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nº Conta</th>
+                        <th>Agência</th>
+                        <th>Tipo</th>
+                        <th>Saldo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in contas_positivas %}
+                    <tr>
+                        <td>{{ c.numero }}</td>
+                        <td>{{ c.agencia }}</td>
+                        <td>{{ c.tipo }}</td>
+                        <td class="positive">R$ {{ "%.2f"|format(c.saldo) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4">Nenhuma conta com saldo positivo no momento.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

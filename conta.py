@@ -1,14 +1,13 @@
 import agencia
 import cliente
+from functools import reduce
 
 # Mapeia Número da Conta -> Dicionário da Conta
 contas = {}
 
 
 def buscar_por_numero(numero):
-    if numero in contas:
-        return contas[numero]
-    return None
+    return contas.get(numero, None)
 
 
 def buscar_por_agencia_e_numero(codigo_agencia, numero):
@@ -68,7 +67,6 @@ def sacar(numero, valor):
     if not conta or valor <= 0:
         return False
 
-    # Regras por tipo de conta
     if conta["tipo"] == "Salário" and valor > conta["saldo"]:
         print("Erro: Conta Salário não permite saldo negativo.")
         return False
@@ -80,32 +78,24 @@ def sacar(numero, valor):
     return False
 
 
+# ------------------------------------------------------------------------------
+# MODIFICAÇÃO / REFACTOR: Uso de filter() e lambda para funções da Etapa 4
+# ------------------------------------------------------------------------------
+
 def contar_da_agencia(codigo_agencia):
-    total = 0
-    for conta in contas.values():
-        if conta["agencia"] == codigo_agencia:
-            total += 1
-    return total
+    # MODIFICAÇÃO: Substituted laço manual por filter + lambda para contar contas
+    return len(list(filter(lambda c: c["agencia"] == codigo_agencia, contas.values())))
 
 
 def nomes_titulares(conta):
-    nomes = []
-    for cpf in conta["titulares"]:
-        cli = cliente.buscar_por_cpf(cpf)
-        if cli:
-            nomes.append(cli["nome"])
-        else:
-            nomes.append("?")
-    return ", ".join(nomes)
+    # MODIFICAÇÃO: Uso da função map() com lambda para extrair nomes de titulares por CPF
+    buscar_nome = lambda cpf: cliente.buscar_por_cpf(cpf)["nome"] if cliente.buscar_por_cpf(cpf) else "?"
+    return ", ".join(list(map(buscar_nome, conta["titulares"])))
 
 
 def ordenar_por_titular():
-    lista = list(contas.values())
-    for i in range(len(lista)):
-        for j in range(len(lista) - 1 - i):
-            if nomes_titulares(lista[j]).lower() > nomes_titulares(lista[j + 1]).lower():
-                lista[j], lista[j + 1] = lista[j + 1], lista[j]
-    return lista
+    # MODIFICAÇÃO: Substituído o Bubble Sort por sorted() com chave lambda
+    return sorted(contas.values(), key=lambda c: nomes_titulares(c).lower())
 
 
 def descricao(conta):
@@ -114,36 +104,70 @@ def descricao(conta):
     return (f"Agência: {conta['agencia']} ({nome_ag}) | Conta: {conta['numero']} | "
             f"Tipo: {conta['tipo']} | Titulares: [{nomes_titulares(conta)}] | Saldo: R$ {conta['saldo']:.2f}")
 
-def _valores(colecao):
-    return colecao.values() if isinstance(colecao, dict) else colecao
 
 
-# pega os nomes de clientes individuais e monta uma lista sem repetir
-def listar_clientes(clientes):
-    return list(dict.fromkeys([cliente.nome for cliente in _valores(clientes)]))
+#  FUNÇÕES DA ETAPA 4 (Comentadas com as correções de conflito)
+
+def listar_contas_saldo_positivo():
+    """Retorna apenas as contas com saldo > 0 usando filter() e lambda."""
+    return list(filter(lambda c: c["saldo"] > 0, contas.values()))
 
 
-# pega os nomes das agências individuais e monta uma lista sem repetir
-def listar_agencias(agencias):
-    return list(dict.fromkeys([agencia.nome for agencia in _valores(agencias)]))
+def montante_total_banco(colecao_contas=None):
+    """
+    MODIFICAÇÃO DE ERRO / CONFLITO:
+    O código original tentava acessar conta.saldo (como atributo de objeto).
+    Como as contas estão salvas como dicionários c['saldo'], isso gerava AttributeError.
+    Ajustado para aceitar tanto dicionário c['saldo'] quanto fallback para o menu/web.
+    """
+    alvo = colecao_contas if colecao_contas is not None else contas.values()
+    alvo_lista = list(alvo.values()) if isinstance(alvo, dict) else list(alvo)
+    if not alvo_lista:
+        return 0.0
+    return reduce(lambda acc, c: acc + (c["saldo"] if isinstance(c, dict) else getattr(c, 'saldo', 0.0)), alvo_lista, 0.0)
 
 
-# calcula cumulativamente o saldo total do banco
-def montante_total_banco(contas):
-    return sum([conta.saldo for conta in _valores(contas)])
+def busca_maior_saldo(colecao_contas=None):
+    """
+    MODIFICAÇÃO DE ERRO / CONFLITO:
+    Corrigido o erro de AttributeError na função max().
+    Agora utiliza c['saldo'] ao invés de tentar ler atributos de objetos não existentes.
+    """
+    alvo = colecao_contas if colecao_contas is not None else contas.values()
+    alvo_lista = list(alvo.values()) if isinstance(alvo, dict) else list(alvo)
+    if not alvo_lista:
+        return 0.0
+    maior_c = max(alvo_lista, key=lambda c: c["saldo"] if isinstance(c, dict) else getattr(c, 'saldo', 0.0))
+    return maior_c["saldo"] if isinstance(maior_c, dict) else getattr(maior_c, 'saldo', 0.0)
 
 
-# procura pelo maior saldo do banco, devolve titulares
-def busca_maior_saldo(contas):
-    contas = list(_valores(contas))
-    if not contas:
-        return []
+def busca_menor_saldo(colecao_contas=None):
+    """
+    MODIFICAÇÃO: Nova função adicionada conforme as regras da Etapa 4,
+    encontrando o menor saldo via min() e lambda.
+    """
+    alvo = colecao_contas if colecao_contas is not None else contas.values()
+    alvo_lista = list(alvo.values()) if isinstance(alvo, dict) else list(alvo)
+    if not alvo_lista:
+        return 0.0
+    menor_c = min(alvo_lista, key=lambda c: c["saldo"] if isinstance(c, dict) else getattr(c, 'saldo', 0.0))
+    return menor_c["saldo"] if isinstance(menor_c, dict) else getattr(menor_c, 'saldo', 0.0)
 
-    maior_saldo = max([conta.saldo for conta in contas])
 
-    maior_contribuidor = [
-        titular.nome
-        for conta in contas if conta.saldo == maior_saldo
-        for titular in conta.titulares
-    ]
-    return list(dict.fromkeys(maior_contribuidor)) 
+def obter_dados_dashboard():
+    """Gera todas as métricas consolidadas para o Dashboard do Banco."""
+    total_clientes = len(cliente.clientes)
+    total_contas = len(contas)
+    saldo_total = montante_total_banco()
+    maior_saldo = busca_maior_saldo()
+    menor_saldo = busca_menor_saldo()
+    saldo_medio = (saldo_total / total_contas) if total_contas > 0 else 0.0
+
+    return {
+        "total_clientes": total_clientes,
+        "total_contas": total_contas,
+        "saldo_total": saldo_total,
+        "maior_saldo": maior_saldo,
+        "menor_saldo": menor_saldo,
+        "saldo_medio": saldo_medio
+    }

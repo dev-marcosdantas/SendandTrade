@@ -226,7 +226,10 @@ def gerar_relatorio_banco():
     print("\n" + "=" * 50)
     print("           RELATÓRIO GERAL DO BANCO          ")
     print("=" * 50)
-    saldo_total = sum(c["saldo"] for c in conta.contas.values())
+    # MODIFICAÇÃO DE ERRO:
+    # Substituída a soma manual sum(c["saldo"]) pela chamada unificada
+    # da função conta.montante_total_banco() da Etapa 4
+    saldo_total = conta.montante_total_banco()
     print(f"Total de Agências Cadastradas: {len(agencia.agencias)}")
     print(f"Total de Clientes Cadastrados: {len(cliente.clientes)}")
     print(f"Total de Contas Abertas:      {len(conta.contas)}")
@@ -259,15 +262,12 @@ def carregar_json():
         with open("banco.json", "r", encoding="utf-8") as arq:
             dados = json.load(arq)
 
-        # Reconstrui agências
         for ag in dados.get("agencias", []):
             agencia.agencias[ag["codigo"]] = ag
 
-        # Reconstrui clientes
         for cli in dados.get("clientes", []):
             cliente.clientes[cli["cpf"]] = cli
 
-        # Reconstrui contas
         for c in dados.get("contas", []):
             conta.contas[c["numero"]] = c
 
