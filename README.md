@@ -1,9 +1,10 @@
 # Banco-PA
 Projeto de simulação de operações bancárias em Python.
+
 ### Registro de Desenvolvimento (22/10/2026)
 **Desenvolvido por: Marcos Antônio Brito Dantas**
 
-[#### 1. Resumo das Modificações e Implementações (Etapa 4):
+#### 1. Resumo das Modificações e Implementações (Etapa 4):
 - **Ajustes na Arquitetura para Suporte Híbrido (Terminal + Web)**: Refatoração dos módulos `conta.py` e `menu.py` para corrigir inconsistências de compatibilidade, garantindo que o sistema funcione de forma integrada tanto via terminal quanto na interface web sem quebras ou conflitos com o arquivo de persistência `banco.json`.
 - **Implementação de Funções de Alta Ordem e Programação Funcional**:
   - `listar_contas_saldo_positivo()`: Filtra contas ativas com saldo maior que zero utilizando `filter()` e expressões `lambda`.
@@ -17,14 +18,27 @@ Projeto de simulação de operações bancárias em Python.
 
 ---
 
-### 🚀 Como Rodar o Projeto (Instruções para a Equipe)
+### Como Rodar o Projeto (Instruções para a Equipe)
 
 O projeto pode ser executado em dois modos: **Modo Terminal** ou **Modo Web (Dashboard)**.
 
 #### Pré-requisito Único
 Certifique-se de ter o Python instalado na sua máquina. Para rodar a interface Web, instale o Flask executando no terminal:
-```bash](http://127.0.0.1:5000)
-pip install flask
+`pip install flask`
+
+#### 1. Executando o Modo Terminal (Menu Tradicional)
+Se quiser rodar o menu interativo via terminal de texto:
+1. Abra o terminal na pasta do projeto.
+2. Execute o comando: `python main.py`
+
+#### 2. Executando o Modo Web (Dashboard no Navegador)
+Para visualizar o Dashboard com todas as métricas e relatórios gráficos:
+1. Abra o terminal na pasta do projeto.
+2. Execute o servidor Web: `python app.py`
+3. O terminal exibirá o endereço local onde a aplicação está rodando.
+4. Abra o seu navegador (Chrome, Edge ou Firefox) e acesse o endereço: `[http://127.0.0.1:5000](http://127.0.0.1:5000)`
+
+---
 
 ### Registro de Desenvolvimento (21/10/2026)
 **Desenvolvido por: Mateus Macedo Gonzaga**
@@ -67,6 +81,8 @@ Funcionalidades implementadas (02/09/2026):
 - Operação de depósito com validações de valor
 - Operação de saque com verificação de saldo disponível
 - Estruturação e modularização dos arquivos (`cliente.py`, `conta.py` e `main.py`)
+
+---
 
 ### Registro de Desenvolvimento (25/09/2026)
 **Desenvolvido por: Mell Mass Ribeiro Melo**
