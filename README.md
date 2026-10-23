@@ -3,7 +3,7 @@ Projeto de simulação de operações bancárias em Python.
 ### Registro de Desenvolvimento (22/10/2026)
 **Desenvolvido por: Marcos Antônio Brito Dantas**
 
-#### 1. Resumo das Modificações e Implementações (Etapa 4):
+[#### 1. Resumo das Modificações e Implementações (Etapa 4):
 - **Ajustes na Arquitetura para Suporte Híbrido (Terminal + Web)**: Refatoração dos módulos `conta.py` e `menu.py` para corrigir inconsistências de compatibilidade, garantindo que o sistema funcione de forma integrada tanto via terminal quanto na interface web sem quebras ou conflitos com o arquivo de persistência `banco.json`.
 - **Implementação de Funções de Alta Ordem e Programação Funcional**:
   - `listar_contas_saldo_positivo()`: Filtra contas ativas com saldo maior que zero utilizando `filter()` e expressões `lambda`.
@@ -23,7 +23,7 @@ O projeto pode ser executado em dois modos: **Modo Terminal** ou **Modo Web (Das
 
 #### Pré-requisito Único
 Certifique-se de ter o Python instalado na sua máquina. Para rodar a interface Web, instale o Flask executando no terminal:
-```bash
+```bash](http://127.0.0.1:5000)
 pip install flask
 
 ### Registro de Desenvolvimento (21/10/2026)
