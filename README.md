@@ -1,7 +1,9 @@
-# Banco-PA
-Projeto de simulação de operações bancárias em Python.
+# Banco-PA / Send&Trade
+Projeto de simulação de operações bancárias em Python desenvolvido para a disciplina de Programação A (PAC) na Universidade Federal de Sergipe (UFS).
 
-### Registro de Desenvolvimento (22/10/2026)
+---
+
+### Registro de Desenvolvimento (23/10/2026)
 **Desenvolvido por: Marcos Antônio Brito Dantas**
 
 #### 1. Resumo das Modificações e Implementações (Etapa 4):
@@ -13,8 +15,8 @@ Projeto de simulação de operações bancárias em Python.
   - `obter_dados_dashboard()`: Método estruturado que consolida métricas para alimentar a interface do Dashboard.
 - **Refatoração de Ordenações**: Atualização das funções de ordenação de contas, clientes e agências utilizando `sorted()` e chaves `lambda` em substituição a laços manuais.
 - **Criação da Interface Web (Dashboard)**:
-  - Criação do servidor em Flask (`app.py`) para leitura e disponibilização dos dados em formato web.
-  - Implementação do Front-End em HTML5 (`templates/index.html`) e estilização com CSS3 (`static/style.css`) para exibição das métricas financeiras (total de clientes, contas, saldo total, saldo médio, maior/menor saldo e listagens).
+  - Desenvolvimento da interface visual utilizando Flask (`app.py`), HTML5 (`templates/index.html`) e CSS3 (`static/style.css`) com o auxílio de ferramentas de IA para a estruturação do layout responsivo.
+  - A interface web opera em modo **somente leitura (visualização)** para exibição das métricas financeiras (total de clientes, contas, saldo total, saldo médio, maior/menor saldo e listagens). Qualquer alteração de dados (cadastros, depósitos, saques) é feita manualmente no VS Code executando o menu no terminal.
 
 ---
 
@@ -36,7 +38,7 @@ Para visualizar o Dashboard com todas as métricas e relatórios gráficos:
 1. Abra o terminal na pasta do projeto.
 2. Execute o servidor Web: `python app.py`
 3. O terminal exibirá o endereço local onde a aplicação está rodando.
-4. Abra o seu navegador (Chrome, Edge ou Firefox) e acesse o endereço: `[http://127.0.0.1:5000](http://127.0.0.1:5000)`
+4. Abra o seu navegador (Chrome, Edge ou Firefox) e acesse o endereço: `http://127.0.0.1:5000`
 
 ---
 
@@ -47,10 +49,21 @@ Para visualizar o Dashboard com todas as métricas e relatórios gráficos:
 
 ---
 
+### Registro de Desenvolvimento (25/09/2026)
+**Desenvolvido por: Mell Mass Ribeiro Melo**
+
+Refatoração do sistema (25/09/2026):
+- **Listas paralelas**: classes e dicionários substituídos por listas em `agencia.py`, `cliente.py` e `conta.py`, ligadas pela mesma posição.
+- **Co-titulares**: vínculo entre contas e clientes guardado nas listas `tit_contas` e `tit_cpfs`.
+- **Ordenação por nome**: listagens de agências, clientes e contas ordenadas com o método bolha.
+- **Novo formato do `banco.json`**: dados salvos como listas, sem dicionários.
+
+---
+
 ### Registro de Desenvolvimento (16/09/2026)
 **Desenvolvido por: Mell Mass Ribeiro Melo**
 
-Novas funcionalidades e persitência implementadas (16/09/2026):
+Novas funcionalidades e persistência implementadas (16/09/2026):
 - **Persistência de Dados em JSON (`salvar_json` e `carregar_json`)**: Implementado o salvamento automático e manual do estado do sistema (agências, clientes, contas e saldos) em arquivo `banco.json`, garantindo a manutenção dos dados entre execuções.
 - **Relatório Geral do Banco (`gerar_relatorio_banco`)**: Criada funcionalidade para consolidação de métricas globais do banco, exibindo o total de agências, clientes, contas abertas e o saldo geral custodiado.
 - **Listagens do Sistema (`listar_agencias`, `listar_clientes`, `listar_contas`)**: Adicionados métodos de consulta para exibição estruturada e individual de todas as agências, clientes e contas cadastradas.
@@ -81,14 +94,3 @@ Funcionalidades implementadas (02/09/2026):
 - Operação de depósito com validações de valor
 - Operação de saque com verificação de saldo disponível
 - Estruturação e modularização dos arquivos (`cliente.py`, `conta.py` e `main.py`)
-
----
-
-### Registro de Desenvolvimento (25/09/2026)
-**Desenvolvido por: Mell Mass Ribeiro Melo**
-
-Refatoração do sistema (25/09/2026):
-- Listas paralelas: classes e dicionários substituídos por listas em `agencia.py`, `cliente.py` e `conta.py`, ligadas pela mesma posição.
-- Co-titulares: vínculo entre contas e clientes guardado nas listas `tit_contas` e `tit_cpfs`.
-- Ordenação por nome: listagens de agências, clientes e contas ordenadas com o método bolha.
-- Novo formato do `banco.json`: dados salvos como listas, sem dicionários.
