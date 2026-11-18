@@ -3,6 +3,23 @@ Projeto de simulação de operações bancárias em Python desenvolvido para a d
 
 ---
 
+### Registro de Desenvolvimento (17/11/2026)
+**DESENVOLVIDO POR MELL MASS**
+
+### Resumo das modificações (etapa 5)
+Transformar todos os dicionários em classes
+Continuar no esquema HTML + CSS + Python
+
+# Simplificações
+Apenas 1 agência
+1 Conta tem apenas 1 Cliente
+1 Cliente pode ter N contas
+Não existe mais conta conjunta
+2 Tipos de conta apenas: corrente e poupança -> Conta é abstrata
+PS: Json apenas será acessado ao iniciar a aplicação e quanto ela for fechada, ou seja, vamos diminuir a quantidade de interações de rotas
+
+---
+
 ### Registro de Desenvolvimento (23/10/2026)
 **Desenvolvido por: Marcos Antônio Brito Dantas**
 
